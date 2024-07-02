@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COVID-19 Data Display in India</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    #result {
+      margin-top: 20px;
+    }
+    .card {
+    background-color: blue;
+    color: white;
+    margin-bottom: 100px;
+}
+body {
+    background: rgb(238,174,202);
+    background: radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(148,187,233,0.6952906162464986) 100%);
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mt-5">COVID-19 Data Display</h1>
+    <form id="search-form" class="mt-3">
+      <div class="form-group">
+        <input
+          type="search"
+          class="form-control"
+          id="search-input"
+          placeholder="Enter state name"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+    <div id="result" class="mt-5"></div>
+  </div>
+
+  <script>
+    const searchForm = document.getElementById("search-form");
+    const searchInput = document.getElementById("search-input");
+    const resultDiv = document.getElementById("result");
+
+    searchForm.addEventListener('input', (e) => {
+      e.preventDefault();
+
+      const searchTerm = searchInput.value.toLowerCase().trim();
+
+      if (!searchTerm) {
+        showAlert("Please enter a state name");
+        return;
+      }
+
+      fetchData().then((data) => {
+        displayData(data, searchTerm);
+      }).catch((error) => {
+        console.error(error);
+      });
+    });
+
+    function fetchData() {
+      const url = 'https://data.covid19india.org/v4/min/data.min.json';
+      return new Promise((resolve, reject) => {
+        fetch(url)
+          .then((response) => {
+            if (!response.ok) {
+              reject('Data not fetched');
+              return;
+            }
+            return response.json();
+          })
+          .then((data) => {
+            resolve(data);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    }
+
+    function displayData(data, searchTerm) {
+      resultDiv.innerHTML = ''; // Clear previous results
+
+      let matchFound = false; // Flag to track if a match is found
+      // Use a dictionary to map state codes to state names
+      const stateNames = {
+        "AN": "Andaman and Nicobar Islands",
+        "AP": "Andhra Pradesh",
+        "AR": "Arunachal Pradesh",
+        "AS": "Assam",
+        "BR": "Bihar",
+        "CH": "Chandigarh",
+        "CT": "Chhattisgarh",
+        "DL": "Delhi",
+        "DN": "Dadra and Nagar Haveli and Daman and Diu",
+        "GA": "Goa",
+        "GJ": "Gujarat",
+        "HP": "Himachal Pradesh",
+        "HR": "Haryana",
+        "JH": "Jharkhand",
+        "JK": "Jammu and Kashmir",
+        "KA": "Karnataka",
+        "KL": "Kerala",
+        "LA": "Ladakh",
+        "LD": "Lakshadweep",
+        "MH": "Maharashtra",
+        "ML": "Meghalaya",
+        "MN": "Manipur",
+        "MP": "Madhya Pradesh",
+        "MZ": "Mizoram",
+        "NL": "Nagaland",
+        "OR": "Odisha",
+        "PB": "Punjab",
+        "PY": "Puducherry",
+        "RJ": "Rajasthan",
+        "SK": "Sikkim",
+        "TG": "Telangana",
+        "TN": "Tamil Nadu",
+        "TR": "Tripura",
+        "UP": "Uttar Pradesh",
+        "UT": "Uttarakhand",
+        "WB": "West Bengal"
+      };
+
+      for (const stateCode in data) {
+       
+        console.log('',stateCode);
+        const stateName = stateNames[stateCode];
+
+        console.log('Name : ',stateName);
+     
+        if (stateName.toLowerCase().includes(searchTerm)) {
+          const stateData = data[stateCode];
+
+          console.log('stateData',stateData);
+          const card = document.createElement('div');
+          card.classList.add('card', 'mt-3');
+          card.innerHTML = `
+            <div class="card-body">
+              <h5 class="card-title">${stateName}</h5>
+              <p class="card-text"><strong>Total Confirmed:</strong> ${stateData.total.confirmed}</p>
+              <p class="card-text"><strong>Total Deceased:</strong> ${stateData.total.deceased}</p>
+              <p class="card-text"><strong>Total Recovered:</strong> ${stateData.total.recovered}</p>
+              <p class="card-text"><strong>Total Tested:</strong> ${stateData.total.tested}</p>
+              <p class="card-text"><strong>Total Vaccinated 1:</strong> ${stateData.total.vaccinated1}</p>
+              <p class="card-text"><strong>Total Vaccinated 2:</strong> ${stateData.total.vaccinated2}</p>
+            </div>
+          `;
+          resultDiv.appendChild(card);
+          matchFound = true; // Set the flag to true when a match is found
+        }
+        // else {
+        //     resultDiv.innerHTML = `<div class="alert alert-danger" role="alert">No matching state found.</div>`;
+        // }
+      }
+    }
+
+    function showAlert(message) {
+      alert(message);
+    }
+  </script>
+</body>
+</html>
